@@ -11,7 +11,7 @@ export class AdminUserController {
 
   async update(req: AuthenticatedRequest, res: Response) {
     const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
-    const data = await adminUserService.update(req.user!.companyId, id, req.body);
+    const data = await adminUserService.update(req.user!.companyId, req.user!, id, req.body);
     return sendSuccess(res, data, 'User updated');
   }
 }

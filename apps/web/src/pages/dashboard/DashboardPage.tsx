@@ -35,6 +35,14 @@ interface DashboardStats {
   employees?: number;
   projects?: number;
   tasks?: number;
+  myTasks?: number;
+  assignedTasks?: Array<{
+    id: string;
+    title: string;
+    status: string;
+    priority: string;
+    project?: { name: string } | null;
+  }>;
   recentActivities?: Array<{
     id: string;
     action: string;
@@ -61,6 +69,7 @@ export function DashboardPage() {
 
   const role = user?.role;
   const isSuperAdmin = role === ROLES.SUPER_ADMIN;
+  const isEmployee = role === ROLES.EMPLOYEE;
 
   const growthData = stats?.employeeGrowth?.length
     ? stats.employeeGrowth
@@ -116,10 +125,10 @@ export function DashboardPage() {
           icon={Clock}
         />
         <StatCard
-          title="Pending Leaves"
-          value={stats?.pendingLeaves ?? 0}
-          icon={CalendarDays}
-          description="Awaiting approval"
+          title={isEmployee ? 'My Tasks' : 'Pending Leaves'}
+          value={isEmployee ? (stats?.myTasks ?? 0) : (stats?.pendingLeaves ?? 0)}
+          icon={isEmployee ? CheckSquare : CalendarDays}
+          description={isEmployee ? 'Assigned to you' : 'Awaiting approval'}
         />
       </div>
 
@@ -156,6 +165,42 @@ export function DashboardPage() {
 
         <ActivityFeed activities={stats?.recentActivities ?? []} />
       </div>
+
+      {isEmployee && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">My Assigned Tasks</CardTitle>
+          </CardHeader>
+          <CardContent className="p-0">
+            {!stats?.assignedTasks?.length ? (
+              <p className="p-6 text-sm text-muted-foreground">No tasks assigned to you yet.</p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b bg-muted/50">
+                      <th className="text-left p-3 font-medium">Task</th>
+                      <th className="text-left p-3 font-medium">Project</th>
+                      <th className="text-left p-3 font-medium">Priority</th>
+                      <th className="text-left p-3 font-medium">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {stats.assignedTasks.map((task) => (
+                      <tr key={task.id} className="border-b">
+                        <td className="p-3 font-medium">{task.title}</td>
+                        <td className="p-3">{task.project?.name ?? '—'}</td>
+                        <td className="p-3">{task.priority}</td>
+                        <td className="p-3">{task.status}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       {isSuperAdmin && (
         <Card>

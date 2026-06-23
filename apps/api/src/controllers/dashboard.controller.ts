@@ -7,7 +7,8 @@ export class DashboardController {
   async getStats(req: AuthenticatedRequest, res: Response) {
     const stats = await dashboardService.getDashboard(
       req.user!.companyId,
-      req.user!.role
+      req.user!.role,
+      req.user!.employeeId
     );
     return sendSuccess(res, stats);
   }

@@ -13,7 +13,10 @@ export const createEmployeeSchema = z.object({
   password: z.string().min(8).optional(),
   firstName: z.string().min(1).max(100),
   lastName: z.string().min(1).max(100),
-  employeeCode: z.string().min(2).max(20).optional(),
+  employeeCode: z.preprocess(
+    (val) => (val === '' || val === null || val === undefined ? undefined : val),
+    z.string().min(1).max(20).optional()
+  ),
   departmentId: z.string().uuid().optional(),
   designationId: z.string().uuid().optional(),
   joiningDate: z.string().datetime().or(z.string().regex(/^\d{4}-\d{2}-\d{2}$/)),

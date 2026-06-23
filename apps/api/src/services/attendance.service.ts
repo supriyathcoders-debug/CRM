@@ -49,7 +49,9 @@ export class AttendanceService {
   ) {
     const employeeId = await this.resolveEmployeeId(user);
     const existing = await attendanceRepository.findToday(employeeId);
-    if (existing?.checkIn) throw new ConflictError('Already checked in today');
+    if (existing?.checkIn) {
+      return existing;
+    }
 
     const now = new Date();
     const late = isLate(now);

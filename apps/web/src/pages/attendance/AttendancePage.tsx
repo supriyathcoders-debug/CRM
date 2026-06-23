@@ -58,9 +58,11 @@ export function AttendancePage() {
   }, []);
 
   const checkIn = async () => {
+    if (!canCheckIn) return;
     setActionLoading(true);
     try {
-      await api.post('/attendance/check-in', {});
+      const res = await api.post('/attendance/check-in', {});
+      setToday(res.data.data ?? null);
       toast.success('Checked in successfully');
       load();
     } catch (e) {
@@ -71,9 +73,13 @@ export function AttendancePage() {
   };
 
   const checkOut = async () => {
+    if (!canCheckOut) return;
     setActionLoading(true);
     try {
-      await api.post('/attendance/check-out', {});
+      const res = await api.post('/attendance/check-out', {});
+      if (today && res.data.data) {
+        setToday({ ...today, ...res.data.data });
+      }
       toast.success('Checked out successfully');
       load();
     } catch (e) {
@@ -84,7 +90,7 @@ export function AttendancePage() {
   };
 
   const canCheckIn = !today?.checkIn;
-  const canCheckOut = today?.checkIn && !today?.checkOut;
+  const canCheckOut = Boolean(today?.checkIn && !today?.checkOut);
 
   return (
     <div className="space-y-6">
@@ -135,12 +141,16 @@ export function AttendancePage() {
             )}
 
             <div className="flex gap-2">
-              <Button onClick={checkIn} disabled={!canCheckIn || actionLoading}>
+              <Button
+                variant={canCheckIn ? 'default' : 'outline'}
+                onClick={checkIn}
+                disabled={!canCheckIn || actionLoading}
+              >
                 <LogIn className="h-4 w-4 mr-2" />
                 Check In
               </Button>
               <Button
-                variant="secondary"
+                variant={canCheckOut ? 'default' : 'outline'}
                 onClick={checkOut}
                 disabled={!canCheckOut || actionLoading}
               >
@@ -148,6 +158,11 @@ export function AttendancePage() {
                 Check Out
               </Button>
             </div>
+            {today?.checkIn && !today.checkOut && (
+              <p className="text-xs text-muted-foreground">
+                You are checked in. Use Check Out when you finish for the day.
+              </p>
+            )}
           </CardContent>
         </Card>
       )}

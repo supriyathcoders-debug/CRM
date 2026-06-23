@@ -1,20 +1,30 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import { Sidebar } from './Sidebar';
 import { Navbar } from './Navbar';
 import { cn } from '@/lib/utils';
 import { getNavigationForRole } from '@/config/navigation';
-import { useAppSelector } from '@/store/hooks';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { fetchCompanyBranding } from '@/store/slices/companySlice';
 import { NavLink } from 'react-router-dom';
 import type { RoleName } from '@crm/shared';
 import { X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useCompanyDisplayName } from './CompanyBrandMark';
 
 export function DashboardLayout() {
+  const dispatch = useAppDispatch();
   const [mobileOpen, setMobileOpen] = useState(false);
   const user = useAppSelector((s) => s.auth.user);
+  const companyName = useCompanyDisplayName();
   const role = (user?.role || 'EMPLOYEE') as RoleName;
   const navItems = getNavigationForRole(role);
+
+  useEffect(() => {
+    if (user) {
+      dispatch(fetchCompanyBranding());
+    }
+  }, [dispatch, user?.id]);
 
   return (
     <div className="flex min-h-screen bg-background">
@@ -25,7 +35,7 @@ export function DashboardLayout() {
           <div className="absolute inset-0 bg-black/50" onClick={() => setMobileOpen(false)} />
           <aside className="absolute left-0 top-0 h-full w-64 bg-sidebar border-r p-4">
             <div className="flex justify-between items-center mb-6">
-              <span className="font-semibold">Nexus CRM</span>
+              <span className="font-semibold truncate">{companyName}</span>
               <Button variant="ghost" size="icon" onClick={() => setMobileOpen(false)}>
                 <X className="h-5 w-5" />
               </Button>

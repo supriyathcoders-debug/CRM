@@ -9,11 +9,17 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { api, getApiErrorMessage } from '@/lib/api';
 import { useAppSelector } from '@/store/hooks';
-import { PERMISSIONS } from '@crm/shared';
+import { PERMISSIONS, ROLES } from '@crm/shared';
 
 interface Project {
   id: string;
   name: string;
+}
+
+interface EmployeeOption {
+  id: string;
+  employeeCode: string;
+  user: { firstName: string; lastName: string };
 }
 
 interface Task {
@@ -30,15 +36,18 @@ const STATUSES = ['PENDING', 'IN_PROGRESS', 'REVIEW', 'COMPLETED'] as const;
 export function TasksPage() {
   const user = useAppSelector((s) => s.auth.user);
   const canWrite = user?.permissions.includes(PERMISSIONS.TASKS_WRITE);
+  const isEmployee = user?.role === ROLES.EMPLOYEE;
 
   const [tasks, setTasks] = useState<Task[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
+  const [employees, setEmployees] = useState<EmployeeOption[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [form, setForm] = useState({
     title: '',
     projectId: '',
+    assigneeId: '',
     priority: 'MEDIUM',
     description: '',
   });
@@ -46,12 +55,17 @@ export function TasksPage() {
   const load = async () => {
     setLoading(true);
     try {
-      const [taskRes, projectRes] = await Promise.all([
+      const requests = [
         api.get('/tasks', { params: { limit: 50 } }),
         api.get('/projects', { params: { limit: 50 } }),
-      ]);
+      ];
+      if (canWrite && !isEmployee) {
+        requests.push(api.get('/employees', { params: { limit: 100 } }));
+      }
+      const [taskRes, projectRes, empRes] = await Promise.all(requests);
       setTasks(taskRes.data.data ?? []);
       setProjects(projectRes.data.data ?? []);
+      if (empRes) setEmployees(empRes.data.data ?? []);
     } catch (e) {
       toast.error(getApiErrorMessage(e));
     } finally {
@@ -70,10 +84,11 @@ export function TasksPage() {
       await api.post('/tasks', {
         ...form,
         projectId: form.projectId || undefined,
+        assigneeId: form.assigneeId || undefined,
       });
       toast.success('Task created');
       setShowForm(false);
-      setForm({ title: '', projectId: '', priority: 'MEDIUM', description: '' });
+      setForm({ title: '', projectId: '', assigneeId: '', priority: 'MEDIUM', description: '' });
       load();
     } catch (err) {
       toast.error(getApiErrorMessage(err));
@@ -100,9 +115,13 @@ export function TasksPage() {
             <CheckSquare className="h-7 w-7 text-primary" />
             Tasks
           </h1>
-          <p className="text-muted-foreground">Manage tasks across projects</p>
+          <p className="text-muted-foreground">
+            {isEmployee
+              ? 'Tasks assigned to you'
+              : 'Create tasks, assign employees, and track progress'}
+          </p>
         </div>
-        {canWrite && (
+        {canWrite && !isEmployee && (
           <Button onClick={() => setShowForm(!showForm)}>
             <Plus className="h-4 w-4 mr-2" />
             New Task
@@ -110,7 +129,7 @@ export function TasksPage() {
         )}
       </div>
 
-      {showForm && canWrite && (
+      {showForm && canWrite && !isEmployee && (
         <Card>
           <CardHeader><CardTitle className="text-base">Create Task</CardTitle></CardHeader>
           <CardContent>
@@ -129,6 +148,21 @@ export function TasksPage() {
                   <option value="">—</option>
                   {projects.map((p) => (
                     <option key={p.id} value={p.id}>{p.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="space-y-2">
+                <Label>Assign to</Label>
+                <select
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                  value={form.assigneeId}
+                  onChange={(e) => setForm({ ...form, assigneeId: e.target.value })}
+                >
+                  <option value="">—</option>
+                  {employees.map((e) => (
+                    <option key={e.id} value={e.id}>
+                      {e.user.firstName} {e.user.lastName} ({e.employeeCode})
+                    </option>
                   ))}
                 </select>
               </div>
@@ -158,7 +192,9 @@ export function TasksPage() {
           {loading ? (
             <div className="p-6"><Skeleton className="h-24 w-full" /></div>
           ) : tasks.length === 0 ? (
-            <p className="p-6 text-sm text-muted-foreground">No tasks yet.</p>
+            <p className="p-6 text-sm text-muted-foreground">
+              {isEmployee ? 'No tasks assigned to you yet.' : 'No tasks yet.'}
+            </p>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
@@ -166,7 +202,7 @@ export function TasksPage() {
                   <tr className="border-b bg-muted/50">
                     <th className="text-left p-3 font-medium">Task</th>
                     <th className="text-left p-3 font-medium">Project</th>
-                    <th className="text-left p-3 font-medium">Assignee</th>
+                    {!isEmployee && <th className="text-left p-3 font-medium">Assignee</th>}
                     <th className="text-left p-3 font-medium">Priority</th>
                     <th className="text-left p-3 font-medium">Status</th>
                   </tr>
@@ -176,9 +212,11 @@ export function TasksPage() {
                     <tr key={t.id} className="border-b">
                       <td className="p-3 font-medium">{t.title}</td>
                       <td className="p-3">{t.project?.name ?? '—'}</td>
-                      <td className="p-3">
-                        {t.assignee ? `${t.assignee.user.firstName} ${t.assignee.user.lastName}` : '—'}
-                      </td>
+                      {!isEmployee && (
+                        <td className="p-3">
+                          {t.assignee ? `${t.assignee.user.firstName} ${t.assignee.user.lastName}` : '—'}
+                        </td>
+                      )}
                       <td className="p-3"><Badge variant="outline">{t.priority}</Badge></td>
                       <td className="p-3">
                         {canWrite ? (

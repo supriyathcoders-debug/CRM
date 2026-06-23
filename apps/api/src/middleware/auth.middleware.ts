@@ -7,6 +7,8 @@ export interface AuthenticatedRequest extends Request {
   user?: {
     id: string;
     email: string;
+    firstName: string;
+    lastName: string;
     companyId: string;
     role: string;
     permissions: string[];
@@ -36,6 +38,8 @@ export async function authenticate(
     req.user = {
       id: user.id,
       email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
       companyId: user.companyId,
       role: user.role.name,
       permissions: user.role.permissions.map((rp) => rp.permission.key),

@@ -1,9 +1,9 @@
 import { Router } from 'express';
 import { employeeController } from '../controllers/employee.controller';
 import { authenticate } from '../middleware/auth.middleware';
-import { requireAnyPermission } from '../middleware/rbac.middleware';
+import { requireAnyPermission, requireRoles } from '../middleware/rbac.middleware';
 import { validate } from '../middleware/validate.middleware';
-import { PERMISSIONS } from '@crm/shared';
+import { PERMISSIONS, ROLES } from '@crm/shared';
 import {
   listEmployeesSchema,
   createEmployeeSchema,
@@ -71,7 +71,7 @@ router.patch(
 
 router.delete(
   '/:id',
-  requireAnyPermission(PERMISSIONS.EMPLOYEES_WRITE),
+  requireRoles(ROLES.SUPER_ADMIN),
   (req, res, next) => employeeController.remove(req, res).catch(next)
 );
 

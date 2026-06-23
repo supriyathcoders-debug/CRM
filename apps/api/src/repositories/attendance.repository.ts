@@ -1,17 +1,12 @@
 import { Prisma } from '@prisma/client';
 import { prisma } from '../config/database';
-
-function startOfDay(d = new Date()): Date {
-  const date = new Date(d);
-  date.setHours(0, 0, 0, 0);
-  return date;
-}
+import { calendarDateOnly } from '../utils/date';
 
 export class AttendanceRepository {
   async findToday(employeeId: string) {
     return prisma.attendance.findUnique({
       where: {
-        employeeId_date: { employeeId, date: startOfDay() },
+        employeeId_date: { employeeId, date: calendarDateOnly() },
       },
     });
   }
@@ -69,7 +64,7 @@ export class AttendanceRepository {
     return prisma.attendance.create({
       data: {
         employeeId,
-        date: startOfDay(),
+        date: calendarDateOnly(),
         checkIn: data.checkIn,
         status: data.isLate ? 'LATE' : 'PRESENT',
         checkInLat: data.lat,

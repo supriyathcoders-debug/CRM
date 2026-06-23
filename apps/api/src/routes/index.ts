@@ -14,6 +14,8 @@ import settingsRoutes from './settings.routes';
 import subscriptionRoutes from './subscription.routes';
 import chatRoutes from './chat.routes';
 import adminUserRoutes from './admin-user.routes';
+import auditRoutes from './audit.routes';
+import companyRoutes from './company.routes';
 
 const router = Router();
 
@@ -32,6 +34,8 @@ router.use('/settings', settingsRoutes);
 router.use('/subscriptions', subscriptionRoutes);
 router.use('/chat', chatRoutes);
 router.use('/admin/users', adminUserRoutes);
+router.use('/audit-logs', auditRoutes);
+router.use('/company', companyRoutes);
 
 router.get('/health', (_req, res) => {
   res.json({ success: true, message: 'API is healthy', timestamp: new Date().toISOString() });

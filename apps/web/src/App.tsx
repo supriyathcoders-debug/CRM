@@ -25,6 +25,7 @@ import { NotificationsPage } from '@/pages/notifications/NotificationsPage';
 import { AdminUsersPage } from '@/pages/admin/AdminUsersPage';
 import { RolesPage } from '@/pages/admin/RolesPage';
 import { SubscriptionsPage } from '@/pages/subscriptions/SubscriptionsPage';
+import { CompanyBrandingPage } from '@/pages/company/CompanyBrandingPage';
 import { ROLES } from '@crm/shared';
 import { useSocket } from '@/hooks/useSocket';
 
@@ -109,6 +110,14 @@ function AppRoutes() {
           element={
             <ProtectedRoute roles={[ROLES.SUPER_ADMIN]}>
               <SubscriptionsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="company/branding"
+          element={
+            <ProtectedRoute roles={[ROLES.SUPER_ADMIN, ROLES.HR]}>
+              <CompanyBrandingPage />
             </ProtectedRoute>
           }
         />

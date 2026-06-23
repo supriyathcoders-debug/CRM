@@ -204,9 +204,18 @@ async function main() {
 
   const designations = [
     { title: 'Software Engineer', level: 2 },
+    { title: 'App Developer', level: 2 },
     { title: 'HR Specialist', level: 2 },
+    { title: 'HR', level: 2 },
     { title: 'Sales Manager', level: 3 },
+    { title: 'Sales', level: 2 },
     { title: 'Team Lead', level: 4 },
+    { title: 'Project Manager', level: 3 },
+    { title: '3D Designer', level: 2 },
+    { title: 'Designer', level: 2 },
+    { title: 'UI/UX Designer', level: 2 },
+    { title: 'Intern Sales', level: 1 },
+    { title: 'Intern Engineering', level: 1 },
   ];
 
   const desigRecords: Record<string, string> = {};
@@ -265,13 +274,41 @@ async function main() {
         },
       });
     } else {
+      user = await prisma.user.update({
+        where: { id: user.id },
+        data: {
+          passwordHash,
+          firstName: u.firstName,
+          lastName: u.lastName,
+          roleId: u.roleId,
+          status: 'ACTIVE',
+          deletedAt: null,
+          emailVerified: true,
+          emailVerifiedAt: new Date(),
+        },
+      });
+
       const emp = await prisma.employee.findUnique({ where: { userId: user.id } });
-      if (emp) {
+      if (!emp) {
+        await prisma.employee.create({
+          data: {
+            userId: user.id,
+            companyId: company.id,
+            employeeCode: u.code,
+            joiningDate: new Date('2024-01-15'),
+            departmentId: deptByEmail[u.email],
+            designationId: desigByEmail[u.email],
+          },
+        });
+      } else {
         await prisma.employee.update({
           where: { id: emp.id },
           data: {
+            deletedAt: null,
+            employmentStatus: 'ACTIVE',
             departmentId: deptByEmail[u.email],
             designationId: desigByEmail[u.email],
+            employeeCode: u.code,
           },
         });
       }

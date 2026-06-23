@@ -8,6 +8,36 @@ export class CompanyRepository {
     });
   }
 
+  async findById(id: string) {
+    return prisma.company.findFirst({
+      where: { id, deletedAt: null },
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        logoUrl: true,
+        industry: true,
+      },
+    });
+  }
+
+  async updateBranding(
+    id: string,
+    data: { name?: string; logoUrl?: string | null }
+  ) {
+    return prisma.company.update({
+      where: { id },
+      data,
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        logoUrl: true,
+        industry: true,
+      },
+    });
+  }
+
   async create(data: {
     name: string;
     slug: string;

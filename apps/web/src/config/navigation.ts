@@ -12,6 +12,7 @@ import {
   UserCog,
   Building2,
   CreditCard,
+  Palette,
   type LucideIcon,
 } from 'lucide-react';
 import { ROLES, type RoleName } from '@crm/shared';
@@ -69,6 +70,12 @@ export const adminNavigation: NavItem[] = [
     href: '/subscriptions',
     icon: CreditCard,
     roles: [ROLES.SUPER_ADMIN],
+  },
+  {
+    title: 'Company Branding',
+    href: '/company/branding',
+    icon: Palette,
+    roles: [ROLES.SUPER_ADMIN, ROLES.HR],
   },
   { title: 'Settings', href: '/settings', icon: Settings, roles: [ROLES.SUPER_ADMIN, ROLES.HR] },
 ];

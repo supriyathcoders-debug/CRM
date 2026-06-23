@@ -4,21 +4,20 @@ import { getNavigationForRole } from '@/config/navigation';
 import { useAppSelector } from '@/store/hooks';
 import { ROLE_LABELS, type RoleName } from '@crm/shared';
 import { Badge } from '@/components/ui/badge';
-import { Zap } from 'lucide-react';
+import { CompanyBrandMark, useCompanyDisplayName } from './CompanyBrandMark';
 
 export function Sidebar() {
   const user = useAppSelector((s) => s.auth.user);
+  const companyName = useCompanyDisplayName();
   const role = (user?.role || 'EMPLOYEE') as RoleName;
   const navItems = getNavigationForRole(role);
 
   return (
     <aside className="hidden lg:flex w-64 flex-col border-r bg-sidebar text-sidebar-foreground">
       <div className="flex h-16 items-center gap-2 border-b px-6">
-        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-          <Zap className="h-4 w-4" />
-        </div>
-        <div>
-          <p className="font-semibold text-sm">Nexus CRM</p>
+        <CompanyBrandMark />
+        <div className="min-w-0">
+          <p className="font-semibold text-sm truncate">{companyName}</p>
           <p className="text-xs text-muted-foreground">Enterprise Suite</p>
         </div>
       </div>

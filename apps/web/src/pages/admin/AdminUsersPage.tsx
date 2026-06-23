@@ -7,6 +7,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { api, getApiErrorMessage } from '@/lib/api';
+import { formatLastChange, formatLastChangeDate, type LastChange } from '@/lib/audit';
 
 interface Role {
   id: string;
@@ -22,6 +23,7 @@ interface AdminUser {
   status: string;
   role: Role;
   employee?: { employeeCode: string } | null;
+  lastChange?: LastChange | null;
 }
 
 export function AdminUsersPage() {
@@ -103,6 +105,7 @@ export function AdminUsersPage() {
                     <th className="text-left p-3 font-medium">User</th>
                     <th className="text-left p-3 font-medium">Role</th>
                     <th className="text-left p-3 font-medium">Status</th>
+                    <th className="text-left p-3 font-medium">Last changed</th>
                     <th className="text-left p-3 font-medium">Actions</th>
                   </tr>
                 </thead>
@@ -133,6 +136,12 @@ export function AdminUsersPage() {
                       </td>
                       <td className="p-3">
                         <Badge variant="outline">{u.status}</Badge>
+                      </td>
+                      <td className="p-3 text-xs">
+                        <p>{formatLastChange(u.lastChange)}</p>
+                        {u.lastChange?.at && (
+                          <p className="text-muted-foreground">{formatLastChangeDate(u.lastChange)}</p>
+                        )}
                       </td>
                       <td className="p-3">
                         <select

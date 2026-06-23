@@ -67,7 +67,7 @@ export class DashboardRepository {
     };
   }
 
-  async getRoleStats(companyId: string, role: string) {
+  async getRoleStats(companyId: string, role: string, employeeId?: string | null) {
     const base = {
       employees: await prisma.employee.count({
         where: { companyId, deletedAt: null },
@@ -106,6 +106,28 @@ export class DashboardRepository {
       return {
         ...base,
         teamTasks: base.tasks,
+      };
+    }
+
+    if (role === 'EMPLOYEE' && employeeId) {
+      const assignedTasks = await prisma.task.findMany({
+        where: {
+          assigneeId: employeeId,
+          deletedAt: null,
+          status: { not: 'COMPLETED' },
+        },
+        include: {
+          project: { select: { id: true, name: true } },
+        },
+        orderBy: { createdAt: 'desc' },
+        take: 10,
+      });
+
+      return {
+        ...base,
+        myTasks: assignedTasks.length,
+        assignedTasks,
+        leaveBalance: 0,
       };
     }
 

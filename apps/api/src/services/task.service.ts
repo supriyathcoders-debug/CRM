@@ -1,3 +1,4 @@
+import { ROLES } from '@crm/shared';
 import { NotFoundError } from '../utils/errors';
 import { taskRepository } from '../repositories/task.repository';
 import { projectRepository } from '../repositories/project.repository';
@@ -17,7 +18,12 @@ export class TaskService {
       search?: string;
     }
   ) {
-    const { items, total } = await taskRepository.list(user.companyId, query);
+    const scopedQuery = { ...query };
+    if (user.role === ROLES.EMPLOYEE && user.employeeId) {
+      scopedQuery.assigneeId = user.employeeId;
+    }
+
+    const { items, total } = await taskRepository.list(user.companyId, scopedQuery);
     return {
       items,
       meta: {
